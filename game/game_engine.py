@@ -1,6 +1,23 @@
 import random
 import pygame
 from game.color_button import ColorButton
+import math
+import array
+
+def make_tone(frequency, duration_ms=250, volume=0.4):
+    """Build a short sine-wave beep as a pygame Sound (no audio files needed)."""
+    sample_rate, _, channels = pygame.mixer.get_init()
+    total = int(sample_rate * duration_ms / 1000)
+    fade = int(sample_rate * 0.02)  
+
+    samples = array.array("h")
+    for i in range(total):
+        envelope = min(1.0, i / fade, (total - i) / fade)
+        value = int(32767 * volume * envelope * math.sin(2 * math.pi * frequency * i / sample_rate))
+        for _ in range(channels):
+            samples.append(value)
+
+    return pygame.mixer.Sound(buffer=samples.tobytes())
 
 
 class GameEngine:
@@ -19,6 +36,8 @@ class GameEngine:
             ColorButton(2, pygame.Rect(start_x, start_y + pad_size + gap, pad_size, pad_size), (15, 100, 30), (50, 255, 90)),    # Green
             ColorButton(3, pygame.Rect(start_x + pad_size + gap, start_y + pad_size + gap, pad_size, pad_size), (140, 110, 10), (255, 235, 40)), # Yellow
         ]
+        self.sounds = [make_tone(freq) for freq in (262, 330, 392, 523)]
+        
 
         self.sequence = []
         self.player_input = []
@@ -72,7 +91,8 @@ class GameEngine:
         self.step_start_time = pygame.time.get_ticks()
         self.is_flashing = True
         self.buttons[self.sequence[0]].is_lit = True
-
+        self.sounds[self.sequence[0]].play()
+        
     def update(self):
         now = pygame.time.get_ticks()
 
@@ -94,7 +114,7 @@ class GameEngine:
                     self.showing_step += 1
                     if self.showing_step < len(self.sequence):
                         next_id = self.sequence[self.showing_step]
-                        self.buttons[next_id].is_lit = True
+                        self.buttons[next_id].play = True
                         self.is_flashing = True
                         self.step_start_time = now
                     else:
@@ -110,6 +130,7 @@ class GameEngine:
             for btn in self.buttons:
                 if btn.contains(event.pos):
                     btn.is_lit = True
+                    self.sounds[btn.color_id].play()
                     self.player_lit_button = btn
                     self.player_lit_start = pygame.time.get_ticks()
 

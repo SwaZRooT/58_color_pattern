@@ -6,6 +6,7 @@ FPS = 60
 
 
 def main():
+    pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.init()
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Memory Color Pattern")
