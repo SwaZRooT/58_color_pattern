@@ -43,7 +43,7 @@ class GameEngine:
     def start_next_round(self):
         new_color = random.randint(0, 3)
 
-        self.sequence += self.sequence + [new_color]
+        self.sequence.append(new_color)
         
         self.player_input.clear()
         self.state = "WATCH"
