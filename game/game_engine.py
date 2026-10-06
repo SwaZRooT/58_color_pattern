@@ -190,12 +190,31 @@ class GameEngine:
         for btn in self.buttons:
             btn.render(screen)
 
+        if self.state == "PLAYER_TURN":
+            now = pygame.time.get_ticks()
+            remaining = max(0, self.turn_time_limit - (now - self.turn_start_time))
+            fraction = remaining / self.turn_time_limit
+
+            bar_w, bar_h = 300, 18
+            bar_x = self.width // 2 - bar_w // 2
+            bar_y = 460
+
+            if fraction > 0.5:
+                bar_color = (80, 240, 130)
+            elif fraction > 0.25:
+                bar_color = (255, 220, 80)
+            else:
+                bar_color = (240, 70, 70)
+
+            pygame.draw.rect(screen, (45, 48, 58), (bar_x, bar_y, bar_w, bar_h), border_radius=9)
+            pygame.draw.rect(screen, bar_color, (bar_x, bar_y, int(bar_w * fraction), bar_h), border_radius=9)
+
         if self.state == "GAME_OVER":
             overlay = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
             overlay.fill((0, 0, 0, 200))
             screen.blit(overlay, (0, 0))
 
-            over_surf = self.font_title.render("WRONG PATTERN! GAME OVER", True, (240, 70, 70))
+            over_surf = self.font_title.render(self.game_over_reason, True, (240, 70, 70))
             screen.blit(over_surf, (self.width // 2 - over_surf.get_width() // 2, self.height // 2 - 40))
 
             final_score_surf = self.font_medium.render(f"Final Score: {self.score}", True, (255, 255, 255))
