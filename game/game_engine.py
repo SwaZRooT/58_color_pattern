@@ -27,8 +27,15 @@ class GameEngine:
         self.state = "WATCH"
         self.showing_step = 0
         self.step_start_time = 0
-        self.flash_duration = 450
-        self.pause_duration = 200
+        self.base_flash_duration = 450
+        self.base_pause_duration = 200
+        self.min_flash_duration = 120
+        self.min_pause_duration = 60
+        self.flash_speedup_per_round = 35
+        self.pause_speedup_per_round = 15
+
+        self.flash_duration = self.base_flash_duration
+        self.pause_duration = self.base_pause_duration
         self.is_flashing = False
 
         self.player_lit_button = None
@@ -40,10 +47,24 @@ class GameEngine:
 
         self.start_next_round()
 
+    def update_playback_speed(self):
+        round_number = len(self.sequence)  
+        steps_faster = round_number - 1
+
+        self.flash_duration = max(
+        self.min_flash_duration,
+        self.base_flash_duration - steps_faster * self.flash_speedup_per_round,
+    )
+        self.pause_duration = max(
+        self.min_pause_duration,
+        self.base_pause_duration - steps_faster * self.pause_speedup_per_round,
+    )
+
     def start_next_round(self):
         new_color = random.randint(0, 3)
 
         self.sequence.append(new_color)
+        self.update_playback_speed()
         
         self.player_input.clear()
         self.state = "WATCH"
