@@ -61,6 +61,12 @@ class GameEngine:
         self.player_lit_start = 0
         self.player_flash_duration = 150
 
+        self.turn_base_time = 3000
+        self.turn_time_per_step = 1000
+        self.turn_start_time = 0
+        self.turn_time_limit = 0
+        self.game_over_reason = ""
+
         self.font_title = pygame.font.SysFont(None, 40)
         self.font_medium = pygame.font.SysFont(None, 28)
 
@@ -114,11 +120,19 @@ class GameEngine:
                     self.showing_step += 1
                     if self.showing_step < len(self.sequence):
                         next_id = self.sequence[self.showing_step]
-                        self.buttons[next_id].play = True
+                        self.buttons[next_id].is_lit = True
+                        self.sounds[next_id].play()
                         self.is_flashing = True
                         self.step_start_time = now
                     else:
                         self.state = "PLAYER_TURN"
+                        self.turn_start_time = now
+                        self.turn_time_limit = self.turn_base_time + self.turn_time_per_step * len(self.sequence)
+
+        if self.state == "PLAYER_TURN":
+            if now - self.turn_start_time >= self.turn_time_limit:
+                self.game_over_reason = "TIME'S UP! GAME OVER"
+                self.state = "GAME_OVER"
 
     def handle_event(self, event):
         if self.state == "GAME_OVER":
@@ -142,6 +156,7 @@ class GameEngine:
         current_idx = len(self.player_input) - 1
 
         if self.player_input[current_idx] != self.sequence[current_idx]:
+            self.game_over_reason = "WRONG PATTERN! GAME OVER"
             self.state = "GAME_OVER"
             return
 
